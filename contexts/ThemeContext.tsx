@@ -6,7 +6,7 @@
  */
 
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
-import { useColorScheme as useRNColorScheme } from 'react-native';
+import { useColorScheme as useRNColorScheme, Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Notifications from 'expo-notifications';
 
@@ -59,20 +59,25 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     await setThemePreference(newTheme);
     
     try {
-      await Notifications.scheduleNotificationAsync({
-        content: {
-          title: newTheme === 'dark' ? 'Dark Mode Enabled' : 'Dark Mode Off',
-          body: newTheme === 'dark' 
-            ? 'Dark mode has been enabled. Your app is now using a dark theme.'
-            : 'Dark mode has been disabled. Your app is now using a light theme.',
-          sound: true,
-        },
-        trigger: {
-          seconds: 0.5,
-        } as Notifications.TimeIntervalTriggerInput,
-      });
+      const { status } = await Notifications.getPermissionsAsync();
+      if (status === 'granted') {
+        await Notifications.scheduleNotificationAsync({
+          content: {
+            title: newTheme === 'dark' ? 'Dark Mode Enabled' : 'Dark Mode Off',
+            body: newTheme === 'dark' 
+              ? 'Dark mode has been enabled. Your app is now using a dark theme.'
+              : 'Dark mode has been disabled. Your app is now using a light theme.',
+            sound: true,
+          },
+          trigger: {
+            seconds: 0.5,
+          } as Notifications.TimeIntervalTriggerInput,
+        });
+      }
     } catch (error) {
-      console.error('Error showing theme change notification:', error);
+      if (__DEV__ && Platform.OS === 'android') {
+        console.warn('Local notifications may have limitations in Expo Go on Android');
+      }
     }
   }, [colorScheme, setThemePreference]);
 

@@ -9,7 +9,7 @@ import { DarkTheme, DefaultTheme, ThemeProvider as NavigationThemeProvider } fro
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import 'react-native-reanimated';
-
+import { LogBox } from 'react-native';
 import { ThemeProvider, useTheme } from '@/contexts/ThemeContext';
 
 export const unstable_settings = {
@@ -18,7 +18,9 @@ export const unstable_settings = {
 
 function RootLayoutNav() {
   const { colorScheme } = useTheme();
-
+  LogBox.ignoreLogs([
+    'expo-notifications: Android Push notifications',
+  ]);
   return (
     <NavigationThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
       <Stack>

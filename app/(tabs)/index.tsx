@@ -139,43 +139,51 @@ export default function WebViewScreen() {
   }
 
   async function scheduleNotification(title: string, body: string, delaySeconds: number, data?: Record<string, any>) {
-    await Notifications.scheduleNotificationAsync({
-      content: {
-        title,
-        body,
-        data: data || {},
-        sound: true,
-      },
-      trigger: {
-        seconds: delaySeconds,
-      } as Notifications.TimeIntervalTriggerInput,
-    });
+    try {
+      if (delaySeconds <= 0) {
+        delaySeconds = 1;
+      }
+      
+      await Notifications.scheduleNotificationAsync({
+        content: {
+          title,
+          body,
+          data: data || {},
+          sound: true,
+        },
+        trigger: {
+          seconds: delaySeconds,
+        } as Notifications.TimeIntervalTriggerInput,
+      });
+    } catch (error) {
+      console.error('Error scheduling notification:', error);
+    }
   }
 
-  const handleFirstNotification = () => {
+  const handleFirstNotification = async () => {
     const delay = Math.floor(Math.random() * 4) + 2;
-    scheduleNotification(
+    await scheduleNotification(
       'Welcome Notification!',
       'This is the first notification triggered from the WebView page. It was scheduled with a delay.',
       delay
     );
-    Alert.alert('Notification Scheduled', `First notification will appear in ${delay} seconds.`);
   };
 
-  const handleSecondNotification = () => {
-    const delay = Math.floor(Math.random() * 4) + 2;
-    scheduleNotification(
+  const handleSecondNotification = async () => {
+    const delay = 5;
+    Alert.alert('Notification Scheduled', `Second notification will appear in ${delay} seconds.`);
+    
+    await scheduleNotification(
       'Action Completed!',
       'This is the second notification. Your action has been processed successfully.',
       delay,
       { openVideoPlayer: true }
     );
-    Alert.alert('Notification Scheduled', `Second notification will appear in ${delay} seconds.`);
   };
 
-  const handleLoadEnd = () => {
+  const handleLoadEnd = async () => {
     setIsLoading(false);
-    scheduleNotification(
+    await scheduleNotification(
       'WebView Loaded!',
       'The website has finished loading successfully.',
       2
