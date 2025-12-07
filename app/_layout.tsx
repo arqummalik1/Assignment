@@ -17,6 +17,7 @@ export default function RootLayout() {
       <Stack>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
+        <Stack.Screen name="video-player" options={{ title: 'Video Player', presentation: 'card' }} />
       </Stack>
       <StatusBar style="auto" />
     </ThemeProvider>

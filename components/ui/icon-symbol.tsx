@@ -18,6 +18,17 @@ const MAPPING = {
   'paperplane.fill': 'send',
   'chevron.left.forwardslash.chevron.right': 'code',
   'chevron.right': 'chevron-right',
+  'safari.fill': 'language',
+  'play.circle.fill': 'play-circle-filled',
+  'pause.fill': 'pause',
+  'play.fill': 'play-arrow',
+  'gobackward.10': 'replay-10',
+  'goforward.10': 'forward-10',
+  'speaker.wave.2.fill': 'volume-up',
+  'speaker.slash.fill': 'volume-off',
+  'arrow.up.left.and.arrow.down.right': 'fullscreen',
+  'arrow.down.right.and.arrow.up.left': 'fullscreen-exit',
+  'xmark': 'close',
 } as IconMapping;
 
 /**

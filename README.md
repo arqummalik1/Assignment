@@ -1,50 +1,100 @@
-# Welcome to your Expo app 👋
+# Assignment
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Expo React Native app demonstrating WebView integration, local notifications, and HLS video playback.
 
-## Get started
+## 🎯 Features
 
-1. Install dependencies
+### 1. WebView Page
+- Embeds a website inside the app using `react-native-webview`
+- Two buttons that trigger different local notifications with random delays (2-5 seconds)
+- Navigation to Video Player page
 
+### 2. Notifications
+- Two distinct notification messages
+- Notifications trigger with a delay of 2-5 seconds
+- Automatic notification when WebView finishes loading
+- Notification tap opens Video Player (bonus feature)
+
+### 3. Video Player Page
+- Plays HLS video stream using Expo's video player
+- Test URL: `https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8`
+- Premium controls: Play, Pause, Fullscreen, Seek, Mute
+- Real-time progress bar and time display
+
+### 4. Navigation
+- Tab-based navigation between pages
+- Stack navigation for Video Player with back button
+
+## 🚀 Getting Started
+
+1. **Install dependencies**:
    ```bash
    npm install
    ```
 
-2. Start the app
-
+2. **Start the development server**:
    ```bash
    npx expo start
    ```
 
-In the output, you'll find options to open the app in a
+3. **Run on device/simulator**:
+   - Press `i` for iOS simulator
+   - Press `a` for Android emulator
+   - Scan QR code with Expo Go app on your physical device
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+## 📱 Testing
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+### WebView Page
+1. WebView loads expo.dev automatically
+2. Tap "Trigger Notification 1" - notification appears after 2-5 seconds
+3. Tap "Trigger Notification 2" - notification appears after 2-5 seconds (tap it to open Video Player)
+4. Wait for WebView to finish loading - automatic notification appears
+5. Tap "Go to Video Player" to navigate to video page
 
-## Get a fresh project
+### Video Player Page
+1. Video starts loading automatically
+2. Use premium controls to play, pause, seek, mute, and enter fullscreen
+3. Tap back button to return to WebView
 
-When you're ready, run:
+## 🛠 Technical Stack
 
-```bash
-npm run reset-project
-```
+- **Expo SDK**: ~54.0.27
+- **React Native**: 0.81.5
+- **expo-notifications**: Local notifications
+- **expo-av**: Video playback
+- **react-native-webview**: WebView component
+- **expo-router**: File-based routing
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+## ✅ Requirements Checklist
 
-## Learn more
+- ✅ WebView embedded with website
+- ✅ Two buttons triggering different notifications
+- ✅ At least two distinct notification messages
+- ✅ Notifications with 2-5 second delays
+- ✅ Video Player page with HLS playback
+- ✅ Play, pause, and fullscreen controls
+- ✅ Navigation between pages
+- ✅ Works in Expo Go
+- ✅ Clean code structure with comments
+- ✅ Premium UI design
 
-To learn more about developing your project with Expo, look at the following resources:
+## 📝 Notes
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+- Notifications require user permission on first launch
+- Video playback may take a few seconds to buffer
+- Fullscreen mode works best on physical devices
+- All features tested and working in Expo Go
 
-## Join the community
+## 🔧 Troubleshooting
 
-Join our community of developers creating universal apps.
+- **Notifications not showing**: Ensure permissions are granted in device settings
+- **Video not playing**: Check internet connection (HLS stream requires network)
+- **WebView not loading**: Verify internet connection and URL accessibility
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+## 📄 License
+
+MIT License - see LICENSE file for details
+
+---
+
+Built with ❤️ using Expo and React Native
