@@ -5,10 +5,10 @@
  * Provides theme toggle functionality and notification on theme change.
  */
 
-import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
-import { useColorScheme as useRNColorScheme, Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Notifications from 'expo-notifications';
+import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
+import { Platform, useColorScheme as useRNColorScheme } from 'react-native';
 
 type ColorScheme = 'light' | 'dark' | 'auto';
 
@@ -24,7 +24,8 @@ const THEME_STORAGE_KEY = '@app_theme_preference';
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const systemColorScheme = useRNColorScheme();
-  const [themePreference, setThemePreferenceState] = useState<ColorScheme>('auto');
+  // Default theme is set to 'dark' instead of 'auto'
+  const [themePreference, setThemePreferenceState] = useState<ColorScheme>('dark');
   const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
@@ -33,6 +34,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
         if (value && (value === 'light' || value === 'dark' || value === 'auto')) {
           setThemePreferenceState(value as ColorScheme);
         }
+        // If no saved preference, default to dark mode
         setIsLoaded(true);
       })
       .catch(() => {
@@ -42,7 +44,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   const colorScheme: 'light' | 'dark' = 
     themePreference === 'auto' 
-      ? (systemColorScheme ?? 'light')
+      ? (systemColorScheme ?? 'dark') // Default to dark instead of light
       : themePreference;
 
   const setThemePreference = useCallback(async (theme: ColorScheme) => {

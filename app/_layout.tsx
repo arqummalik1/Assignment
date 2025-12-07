@@ -5,12 +5,12 @@
  * Wraps all screens with theme context and navigation theme.
  */
 
+import { ThemeProvider, useTheme } from '@/contexts/ThemeContext';
 import { DarkTheme, DefaultTheme, ThemeProvider as NavigationThemeProvider } from '@react-navigation/native';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import 'react-native-reanimated';
 import { LogBox } from 'react-native';
-import { ThemeProvider, useTheme } from '@/contexts/ThemeContext';
+import 'react-native-reanimated';
 
 export const unstable_settings = {
   anchor: '(tabs)',
@@ -26,7 +26,7 @@ function RootLayoutNav() {
       <Stack>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
-        <Stack.Screen name="video-player" options={{ title: 'Video Player', presentation: 'card' }} />
+        <Stack.Screen name="video-player" options={{ headerShown: false, presentation: 'card' }} />
       </Stack>
       <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
     </NavigationThemeProvider>
