@@ -1,8 +1,10 @@
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { IconSymbol } from '@/components/ui/icon-symbol';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useTheme } from '@/contexts/ThemeContext';
 import { AVPlaybackStatus, ResizeMode, Video } from 'expo-av';
+import { BlurView } from 'expo-blur';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import React, { useRef, useState } from 'react';
 import { Dimensions, Platform, Pressable, StyleSheet, TouchableOpacity, View } from 'react-native';
@@ -23,24 +25,34 @@ const PremiumControlButton = ({
   variant?: 'primary' | 'secondary' | 'accent';
   size?: 'small' | 'medium' | 'large';
 }) => {
-  const colorScheme = useColorScheme();
+  const { colorScheme } = useTheme();
   const isDark = colorScheme === 'dark';
   
   const variantStyles = {
     primary: {
-      backgroundColor: isDark ? '#1C1C1E' : '#F2F2F7',
+      blurIntensity: 80,
+      backgroundColor: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(255, 255, 255, 0.7)',
+      borderColor: isDark ? 'rgba(255, 255, 255, 0.2)' : 'rgba(255, 255, 255, 0.8)',
       iconColor: isDark ? '#FFFFFF' : '#000000',
-      borderColor: isDark ? '#38383A' : '#E5E5EA',
+      gradient: isDark 
+        ? (['rgba(0, 122, 255, 0.3)', 'rgba(0, 122, 255, 0.1)'] as const)
+        : (['rgba(0, 122, 255, 0.4)', 'rgba(0, 122, 255, 0.2)'] as const),
     },
     secondary: {
-      backgroundColor: isDark ? '#2C2C2E' : '#FFFFFF',
+      blurIntensity: 80,
+      backgroundColor: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(255, 255, 255, 0.6)',
+      borderColor: isDark ? 'rgba(255, 255, 255, 0.15)' : 'rgba(255, 255, 255, 0.7)',
       iconColor: isDark ? '#FFFFFF' : '#007AFF',
-      borderColor: isDark ? '#48484A' : '#C7C7CC',
+      gradient: isDark 
+        ? (['rgba(255, 255, 255, 0.1)', 'rgba(255, 255, 255, 0.05)'] as const)
+        : (['rgba(255, 255, 255, 0.8)', 'rgba(255, 255, 255, 0.6)'] as const),
     },
     accent: {
-      backgroundColor: '#007AFF',
+      blurIntensity: 90,
+      backgroundColor: 'rgba(0, 122, 255, 0.6)',
+      borderColor: 'rgba(255, 255, 255, 0.3)',
       iconColor: '#FFFFFF',
-      borderColor: '#0051D5',
+      gradient: ['rgba(0, 122, 255, 0.7)', 'rgba(0, 122, 255, 0.5)'] as const,
     },
   };
 
@@ -61,19 +73,37 @@ const PremiumControlButton = ({
         {
           width: sizeStyle.width,
           height: sizeStyle.height,
-          backgroundColor: style.backgroundColor,
-          borderColor: style.borderColor,
-          opacity: pressed ? 0.7 : 1,
+          opacity: pressed ? 0.8 : 1,
           transform: [{ scale: pressed ? 0.95 : 1 }],
         },
       ]}
     >
-      <IconSymbol name={icon as any} size={sizeStyle.iconSize} color={style.iconColor} />
-      {label && (
-        <ThemedText style={[styles.buttonLabel, { color: style.iconColor }]}>
-          {label}
-        </ThemedText>
-      )}
+      <BlurView
+        intensity={style.blurIntensity}
+        tint={isDark ? 'dark' : 'light'}
+        style={styles.blurButton}
+      >
+        <LinearGradient
+          colors={style.gradient}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={[
+            styles.gradientButton,
+            {
+              width: sizeStyle.width,
+              height: sizeStyle.height,
+              borderColor: style.borderColor,
+            },
+          ]}
+        >
+          <IconSymbol name={icon as any} size={sizeStyle.iconSize} color={style.iconColor} />
+          {label && (
+            <ThemedText style={[styles.buttonLabel, { color: style.iconColor }]}>
+              {label}
+            </ThemedText>
+          )}
+        </LinearGradient>
+      </BlurView>
     </Pressable>
   );
 };
@@ -84,7 +114,7 @@ export default function VideoPlayerScreen() {
   const [status, setStatus] = useState<AVPlaybackStatus | null>(null);
   const [isMuted, setIsMuted] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const colorScheme = useColorScheme();
+  const { colorScheme, toggleTheme } = useTheme();
   const isDark = colorScheme === 'dark';
 
   // HLS video URL
@@ -184,17 +214,77 @@ export default function VideoPlayerScreen() {
 
   return (
     <ThemedView style={styles.container}>
-      <View style={styles.header}>
-        <ThemedText type="title" style={styles.title}>Video Player</ThemedText>
-        <TouchableOpacity 
-          onPress={() => router.back()}
-          style={[styles.backButton, { backgroundColor: isDark ? '#1C1C1E' : '#F2F2F7' }]}
+      {/* Glass Header */}
+      <BlurView
+        intensity={100}
+        tint={isDark ? 'dark' : 'light'}
+        style={styles.headerBlur}
+      >
+        <LinearGradient
+          colors={isDark 
+            ? (['rgba(0, 0, 0, 0.3)', 'rgba(0, 0, 0, 0.1)'] as const)
+            : (['rgba(255, 255, 255, 0.8)', 'rgba(255, 255, 255, 0.6)'] as const)}
+          style={styles.headerGradient}
         >
-          <IconSymbol name="xmark" size={20} color={isDark ? '#FFFFFF' : '#000000'} />
-        </TouchableOpacity>
-      </View>
+          <ThemedText type="title" style={styles.title}>Video Player</ThemedText>
+          <View style={styles.headerButtons}>
+            <TouchableOpacity 
+              onPress={toggleTheme}
+              style={styles.themeToggleButton}
+            >
+              <BlurView
+                intensity={80}
+                tint={isDark ? 'dark' : 'light'}
+                style={styles.themeToggleBlur}
+              >
+                <LinearGradient
+                  colors={isDark 
+                    ? (['rgba(255, 255, 255, 0.15)', 'rgba(255, 255, 255, 0.05)'] as const)
+                    : (['rgba(0, 0, 0, 0.1)', 'rgba(0, 0, 0, 0.05)'] as const)}
+                  style={styles.themeToggleGradient}
+                >
+                  <IconSymbol 
+                    name={isDark ? "sun.max.fill" : "moon.fill"} 
+                    size={20} 
+                    color={isDark ? '#FFD60A' : '#007AFF'} 
+                  />
+                </LinearGradient>
+              </BlurView>
+            </TouchableOpacity>
+            <TouchableOpacity 
+              onPress={() => router.back()}
+              style={styles.backButton}
+            >
+              <BlurView
+                intensity={80}
+                tint={isDark ? 'dark' : 'light'}
+                style={styles.backButtonBlur}
+              >
+                <LinearGradient
+                  colors={isDark 
+                    ? (['rgba(255, 255, 255, 0.15)', 'rgba(255, 255, 255, 0.05)'] as const)
+                    : (['rgba(0, 0, 0, 0.1)', 'rgba(0, 0, 0, 0.05)'] as const)}
+                  style={styles.backButtonGradient}
+                >
+                  <IconSymbol name="xmark" size={20} color={isDark ? '#FFFFFF' : '#000000'} />
+                </LinearGradient>
+              </BlurView>
+            </TouchableOpacity>
+          </View>
+        </LinearGradient>
+      </BlurView>
       
+      {/* Glass Video Container */}
       <View style={styles.videoContainer}>
+        <BlurView
+          intensity={60}
+          tint={isDark ? 'dark' : 'light'}
+          style={styles.videoBlur}
+        >
+          <View style={[styles.videoInnerContainer, {
+            borderColor: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
+            backgroundColor: isDark ? 'rgba(0, 0, 0, 0.3)' : 'rgba(255, 255, 255, 0.3)',
+          }]}>
         <Video
           ref={videoRef}
           style={styles.video}
@@ -206,17 +296,25 @@ export default function VideoPlayerScreen() {
           useNativeControls={false}
         />
         
-        {/* Progress Bar Overlay */}
-        <View style={styles.progressBarContainer}>
-          <View style={[styles.progressBarTrack, { backgroundColor: isDark ? '#38383A' : '#E5E5EA' }]}>
-            <View 
-              style={[
-                styles.progressBarFill, 
-                { width: `${getProgress()}%`, backgroundColor: '#007AFF' }
-              ]} 
-            />
+            {/* Progress Bar Overlay */}
+            <View style={styles.progressBarContainer}>
+              <BlurView
+                intensity={40}
+                tint={isDark ? 'dark' : 'light'}
+                style={styles.progressBarBlur}
+              >
+                <View style={[styles.progressBarTrack, { backgroundColor: isDark ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 0, 0, 0.2)' }]}>
+                  <LinearGradient
+                    colors={['#007AFF', '#0051D5'] as const}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 0 }}
+                    style={[styles.progressBarFill, { width: `${getProgress()}%` }]}
+                  />
+                </View>
+              </BlurView>
+            </View>
           </View>
-        </View>
+        </BlurView>
       </View>
 
       {/* Time Display */}
@@ -291,78 +389,158 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingTop: Platform.OS === 'ios' ? 50 : 20,
   },
-  header: {
+  headerBlur: {
+    borderRadius: 0,
+    overflow: 'hidden',
+    marginBottom: 20,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 8,
+      },
+      android: {
+        elevation: 4,
+      },
+    }),
+  },
+  headerGradient: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 20,
     paddingVertical: 15,
-    marginBottom: 10,
   },
   title: {
     fontSize: 28,
     fontWeight: '700',
     letterSpacing: -0.5,
   },
-  backButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    justifyContent: 'center',
+  headerButtons: {
+    flexDirection: 'row',
+    gap: 12,
     alignItems: 'center',
+  },
+  themeToggleButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    overflow: 'hidden',
     ...Platform.select({
       ios: {
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
+        shadowOpacity: 0.15,
+        shadowRadius: 6,
       },
       android: {
-        elevation: 3,
+        elevation: 4,
       },
     }),
+  },
+  themeToggleBlur: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 20,
+    overflow: 'hidden',
+  },
+  themeToggleGradient: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1.5,
+  },
+  backButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    overflow: 'hidden',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.15,
+        shadowRadius: 6,
+      },
+      android: {
+        elevation: 4,
+      },
+    }),
+  },
+  backButtonBlur: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 18,
+    overflow: 'hidden',
+  },
+  backButtonGradient: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
   },
   videoContainer: {
     width: SCREEN_WIDTH - 40,
     height: (SCREEN_WIDTH - 40) * 9 / 16,
     marginHorizontal: 20,
     marginBottom: 20,
-    borderRadius: 16,
+    borderRadius: 24,
     overflow: 'hidden',
-    backgroundColor: '#000',
     ...Platform.select({
       ios: {
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 8 },
-        shadowOpacity: 0.3,
-        shadowRadius: 12,
+        shadowOpacity: 0.25,
+        shadowRadius: 16,
       },
       android: {
-        elevation: 8,
+        elevation: 10,
       },
     }),
+  },
+  videoBlur: {
+    flex: 1,
+    borderRadius: 24,
+    overflow: 'hidden',
+  },
+  videoInnerContainer: {
+    flex: 1,
+    borderRadius: 24,
+    overflow: 'hidden',
+    borderWidth: 1.5,
   },
   video: {
     width: '100%',
     height: '100%',
+    backgroundColor: '#000',
   },
   progressBarContainer: {
     position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
-    height: 4,
+    height: 6,
     paddingHorizontal: 0,
   },
-  progressBarTrack: {
-    height: 4,
+  progressBarBlur: {
+    height: 6,
     width: '100%',
-    borderRadius: 2,
+  },
+  progressBarTrack: {
+    height: 6,
+    width: '100%',
+    borderRadius: 3,
     overflow: 'hidden',
   },
   progressBarFill: {
     height: '100%',
-    borderRadius: 2,
+    borderRadius: 3,
   },
   timeContainer: {
     flexDirection: 'row',
@@ -404,20 +582,28 @@ const styles = StyleSheet.create({
   },
   premiumButton: {
     borderRadius: 28,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 1,
+    overflow: 'hidden',
     ...Platform.select({
       ios: {
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.15,
-        shadowRadius: 8,
+        shadowOffset: { width: 0, height: 6 },
+        shadowOpacity: 0.2,
+        shadowRadius: 12,
       },
       android: {
-        elevation: 4,
+        elevation: 6,
       },
     }),
+  },
+  blurButton: {
+    borderRadius: 28,
+    overflow: 'hidden',
+  },
+  gradientButton: {
+    borderRadius: 28,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1.5,
   },
   buttonLabel: {
     fontSize: 10,

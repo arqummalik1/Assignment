@@ -29,6 +29,8 @@ const MAPPING = {
   'arrow.up.left.and.arrow.down.right': 'fullscreen',
   'arrow.down.right.and.arrow.up.left': 'fullscreen-exit',
   'xmark': 'close',
+  'sun.max.fill': 'wb-sunny',
+  'moon.fill': 'dark-mode',
 } as IconMapping;
 
 /**
