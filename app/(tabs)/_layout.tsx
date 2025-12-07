@@ -1,3 +1,9 @@
+/**
+ * Tab Navigation Layout
+ * 
+ * Configures the bottom tab navigation with icons and theme-aware colors.
+ */
+
 import { Tabs } from 'expo-router';
 import React from 'react';
 

@@ -1,3 +1,10 @@
+/**
+ * WebView Screen with Notifications
+ * 
+ * Main screen that displays a WebView and provides buttons to trigger
+ * local notifications with delays. Also includes navigation to video player.
+ */
+
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { IconSymbol } from '@/components/ui/icon-symbol';
@@ -12,7 +19,6 @@ import { WebView } from 'react-native-webview';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
-// Configure notification handler
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
     shouldShowBanner: true,
@@ -22,17 +28,18 @@ Notifications.setNotificationHandler({
   }),
 });
 
-// Liquid Glass Button Component
+/**
+ * Reusable button component with glassmorphism effect
+ * Used for notification triggers and navigation
+ */
 const LiquidGlassButton = ({ 
   onPress, 
   title, 
   variant = 'primary',
-  icon 
 }: { 
   onPress: () => void; 
   title: string;
   variant?: 'primary' | 'secondary' | 'accent';
-  icon?: string;
 }) => {
   const { colorScheme } = useTheme();
   const isDark = colorScheme === 'dark';
@@ -40,7 +47,6 @@ const LiquidGlassButton = ({
   const variantStyles = {
     primary: {
       blurIntensity: 80,
-      backgroundColor: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(255, 255, 255, 0.7)',
       borderColor: isDark ? 'rgba(255, 255, 255, 0.2)' : 'rgba(255, 255, 255, 0.8)',
       textColor: isDark ? '#FFFFFF' : '#000000',
       gradient: isDark 
@@ -49,7 +55,6 @@ const LiquidGlassButton = ({
     },
     secondary: {
       blurIntensity: 80,
-      backgroundColor: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(255, 255, 255, 0.6)',
       borderColor: isDark ? 'rgba(255, 255, 255, 0.15)' : 'rgba(255, 255, 255, 0.7)',
       textColor: isDark ? '#FFFFFF' : '#007AFF',
       gradient: isDark 
@@ -58,7 +63,6 @@ const LiquidGlassButton = ({
     },
     accent: {
       blurIntensity: 90,
-      backgroundColor: isDark ? 'rgba(52, 199, 89, 0.3)' : 'rgba(52, 199, 89, 0.6)',
       borderColor: isDark ? 'rgba(52, 199, 89, 0.4)' : 'rgba(52, 199, 89, 0.8)',
       textColor: '#FFFFFF',
       gradient: ['rgba(52, 199, 89, 0.5)', 'rgba(52, 199, 89, 0.3)'] as const,
@@ -105,11 +109,9 @@ export default function WebViewScreen() {
   const { colorScheme, toggleTheme } = useTheme();
   const isDark = colorScheme === 'dark';
 
-  // Request notification permissions on mount
   useEffect(() => {
     registerForPushNotificationsAsync();
     
-    // Set up notification response handler (for bonus: open video player when notification tapped)
     const subscription = Notifications.addNotificationResponseReceivedListener((response) => {
       const data = response.notification.request.content.data;
       if (data?.openVideoPlayer) {
@@ -118,9 +120,8 @@ export default function WebViewScreen() {
     });
 
     return () => subscription.remove();
-  }, []);
+  }, [router]);
 
-  // Function to register for push notifications
   async function registerForPushNotificationsAsync() {
     if (Platform.OS === 'android') {
       await Notifications.setNotificationChannelAsync('default', {
@@ -134,12 +135,10 @@ export default function WebViewScreen() {
     const { status } = await Notifications.requestPermissionsAsync();
     if (status !== 'granted') {
       Alert.alert('Permission needed', 'Please enable notifications in your device settings.');
-      return;
     }
   }
 
-  // Function to schedule a notification with delay
-  async function scheduleNotification(title: string, body: string, delaySeconds: number, data?: any) {
+  async function scheduleNotification(title: string, body: string, delaySeconds: number, data?: Record<string, any>) {
     await Notifications.scheduleNotificationAsync({
       content: {
         title,
@@ -153,9 +152,8 @@ export default function WebViewScreen() {
     });
   }
 
-  // Handle first notification button
   const handleFirstNotification = () => {
-    const delay = Math.floor(Math.random() * 4) + 2; // Random delay between 2-5 seconds (2, 3, 4, or 5)
+    const delay = Math.floor(Math.random() * 4) + 2;
     scheduleNotification(
       'Welcome Notification!',
       'This is the first notification triggered from the WebView page. It was scheduled with a delay.',
@@ -164,19 +162,17 @@ export default function WebViewScreen() {
     Alert.alert('Notification Scheduled', `First notification will appear in ${delay} seconds.`);
   };
 
-  // Handle second notification button
   const handleSecondNotification = () => {
-    const delay = Math.floor(Math.random() * 4) + 2; // Random delay between 2-5 seconds (2, 3, 4, or 5)
+    const delay = Math.floor(Math.random() * 4) + 2;
     scheduleNotification(
       'Action Completed!',
       'This is the second notification. Your action has been processed successfully.',
       delay,
-      { openVideoPlayer: true } // Bonus: Add data to open video player when tapped
+      { openVideoPlayer: true }
     );
     Alert.alert('Notification Scheduled', `Second notification will appear in ${delay} seconds.`);
   };
 
-  // Handle WebView load end (Bonus: Send notification when WebView finishes loading)
   const handleLoadEnd = () => {
     setIsLoading(false);
     scheduleNotification(
@@ -188,7 +184,6 @@ export default function WebViewScreen() {
 
   return (
     <ThemedView style={styles.container}>
-      {/* Glass Header */}
       <BlurView
         intensity={100}
         tint={isDark ? 'dark' : 'light'}
@@ -200,7 +195,7 @@ export default function WebViewScreen() {
             : (['rgba(255, 255, 255, 0.8)', 'rgba(255, 255, 255, 0.6)'] as const)}
           style={styles.headerGradient}
         >
-          <ThemedText type="title" style={styles.title}>WebView + Notifications</ThemedText>
+          <ThemedText type="title" style={styles.title}>WebView</ThemedText>
           <TouchableOpacity 
             onPress={toggleTheme}
             style={styles.themeToggleButton}
@@ -227,7 +222,6 @@ export default function WebViewScreen() {
         </LinearGradient>
       </BlurView>
       
-      {/* Glass WebView Container */}
       <View style={styles.webViewWrapper}>
         <BlurView
           intensity={60}
@@ -252,7 +246,6 @@ export default function WebViewScreen() {
         </BlurView>
       </View>
 
-      {/* Liquid Glass Buttons */}
       <View style={styles.buttonContainer}>
         <LiquidGlassButton
           title="Trigger Notification 1"

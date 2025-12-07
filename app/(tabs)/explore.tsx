@@ -1,3 +1,10 @@
+/**
+ * Video Player Tab Screen
+ * 
+ * Landing page for the video player tab. Provides navigation
+ * to the full video player screen.
+ */
+
 import React from 'react';
 import { StyleSheet, View, Button, Platform } from 'react-native';
 import { useRouter } from 'expo-router';

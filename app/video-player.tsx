@@ -1,3 +1,10 @@
+/**
+ * Video Player Screen
+ * 
+ * Displays an HLS video stream with custom glassmorphism controls.
+ * Supports play, pause, seek, mute, and fullscreen functionality.
+ */
+
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { IconSymbol } from '@/components/ui/icon-symbol';
@@ -6,32 +13,39 @@ import { AVPlaybackStatus, ResizeMode, Video } from 'expo-av';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useMemo } from 'react';
 import { Dimensions, Platform, Pressable, StyleSheet, TouchableOpacity, View } from 'react-native';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const VIDEO_ASPECT_RATIO = 9 / 16;
+const HLS_VIDEO_URL = 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8';
 
-// Premium Control Button Component
+type ControlIcon = 'gobackward.10' | 'goforward.10' | 'pause.fill' | 'play.fill' | 'speaker.wave.2.fill' | 'speaker.slash.fill' | 'arrow.up.left.and.arrow.down.right' | 'arrow.down.right.and.arrow.up.left' | 'xmark';
+
+interface PremiumControlButtonProps {
+  onPress: () => void;
+  icon: ControlIcon;
+  label?: string;
+  variant?: 'primary' | 'secondary' | 'accent';
+  size?: 'small' | 'medium' | 'large';
+}
+
+/**
+ * Reusable video control button with glassmorphism styling
+ */
 const PremiumControlButton = ({ 
   onPress, 
   icon, 
   label, 
   variant = 'primary',
   size = 'medium' 
-}: { 
-  onPress: () => void; 
-  icon: 'gobackward.10' | 'goforward.10' | 'pause.fill' | 'play.fill' | 'speaker.wave.2.fill' | 'speaker.slash.fill' | 'arrow.up.left.and.arrow.down.right' | 'arrow.down.right.and.arrow.up.left' | 'xmark'; 
-  label?: string;
-  variant?: 'primary' | 'secondary' | 'accent';
-  size?: 'small' | 'medium' | 'large';
-}) => {
+}: PremiumControlButtonProps) => {
   const { colorScheme } = useTheme();
   const isDark = colorScheme === 'dark';
   
-  const variantStyles = {
+  const variantStyles = useMemo(() => ({
     primary: {
       blurIntensity: 80,
-      backgroundColor: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(255, 255, 255, 0.7)',
       borderColor: isDark ? 'rgba(255, 255, 255, 0.2)' : 'rgba(255, 255, 255, 0.8)',
       iconColor: isDark ? '#FFFFFF' : '#000000',
       gradient: isDark 
@@ -40,7 +54,6 @@ const PremiumControlButton = ({
     },
     secondary: {
       blurIntensity: 80,
-      backgroundColor: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(255, 255, 255, 0.6)',
       borderColor: isDark ? 'rgba(255, 255, 255, 0.15)' : 'rgba(255, 255, 255, 0.7)',
       iconColor: isDark ? '#FFFFFF' : '#007AFF',
       gradient: isDark 
@@ -49,12 +62,11 @@ const PremiumControlButton = ({
     },
     accent: {
       blurIntensity: 90,
-      backgroundColor: 'rgba(0, 122, 255, 0.6)',
       borderColor: 'rgba(255, 255, 255, 0.3)',
       iconColor: '#FFFFFF',
       gradient: ['rgba(0, 122, 255, 0.7)', 'rgba(0, 122, 255, 0.5)'] as const,
     },
-  };
+  }), [isDark]);
 
   const sizeStyles = {
     small: { width: 44, height: 44, iconSize: 18 },
@@ -117,15 +129,10 @@ export default function VideoPlayerScreen() {
   const { colorScheme, toggleTheme } = useTheme();
   const isDark = colorScheme === 'dark';
 
-  // HLS video URL
-  const videoUri = 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8';
-
-  // Handle playback status update
   const handlePlaybackStatusUpdate = (playbackStatus: AVPlaybackStatus) => {
     setStatus(playbackStatus);
   };
 
-  // Play function
   const handlePlay = async () => {
     try {
       await videoRef.current?.playAsync();
@@ -134,7 +141,6 @@ export default function VideoPlayerScreen() {
     }
   };
 
-  // Pause function
   const handlePause = async () => {
     try {
       await videoRef.current?.pauseAsync();
@@ -143,7 +149,6 @@ export default function VideoPlayerScreen() {
     }
   };
 
-  // Seek function
   const handleSeek = async (seconds: number) => {
     try {
       if (status && 'positionMillis' in status) {
@@ -155,7 +160,6 @@ export default function VideoPlayerScreen() {
     }
   };
 
-  // Toggle mute
   const handleToggleMute = async () => {
     try {
       await videoRef.current?.setIsMutedAsync(!isMuted);
@@ -165,7 +169,6 @@ export default function VideoPlayerScreen() {
     }
   };
 
-  // Toggle fullscreen
   const handleToggleFullscreen = async () => {
     try {
       if (!isFullscreen) {
@@ -179,29 +182,28 @@ export default function VideoPlayerScreen() {
     }
   };
 
-  // Get current position for display
+  const formatTime = (millis: number | undefined): string => {
+    if (!millis) return '0:00';
+    const seconds = Math.floor(millis / 1000);
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
   const getCurrentTime = () => {
     if (status && 'positionMillis' in status) {
-      const seconds = Math.floor(status.positionMillis / 1000);
-      const mins = Math.floor(seconds / 60);
-      const secs = seconds % 60;
-      return `${mins}:${secs.toString().padStart(2, '0')}`;
+      return formatTime(status.positionMillis);
     }
     return '0:00';
   };
 
-  // Get duration for display
   const getDuration = () => {
     if (status && 'durationMillis' in status && status.durationMillis) {
-      const seconds = Math.floor(status.durationMillis / 1000);
-      const mins = Math.floor(seconds / 60);
-      const secs = seconds % 60;
-      return `${mins}:${secs.toString().padStart(2, '0')}`;
+      return formatTime(status.durationMillis);
     }
     return '0:00';
   };
 
-  // Get progress percentage
   const getProgress = () => {
     if (status && 'positionMillis' in status && 'durationMillis' in status && status.durationMillis) {
       return (status.positionMillis / status.durationMillis) * 100;
@@ -209,12 +211,10 @@ export default function VideoPlayerScreen() {
     return 0;
   };
 
-  // Check if video is playing
   const isPlaying = status && 'isPlaying' in status && status.isPlaying;
 
   return (
     <ThemedView style={styles.container}>
-      {/* Glass Header */}
       <BlurView
         intensity={100}
         tint={isDark ? 'dark' : 'light'}
@@ -274,7 +274,6 @@ export default function VideoPlayerScreen() {
         </LinearGradient>
       </BlurView>
       
-      {/* Glass Video Container */}
       <View style={styles.videoContainer}>
         <BlurView
           intensity={60}
@@ -285,18 +284,17 @@ export default function VideoPlayerScreen() {
             borderColor: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
             backgroundColor: isDark ? 'rgba(0, 0, 0, 0.3)' : 'rgba(255, 255, 255, 0.3)',
           }]}>
-        <Video
-          ref={videoRef}
-          style={styles.video}
-          source={{ uri: videoUri }}
-          resizeMode={ResizeMode.CONTAIN}
-          isLooping={false}
-          isMuted={isMuted}
-          onPlaybackStatusUpdate={handlePlaybackStatusUpdate}
-          useNativeControls={false}
-        />
-        
-            {/* Progress Bar Overlay */}
+            <Video
+              ref={videoRef}
+              style={styles.video}
+              source={{ uri: HLS_VIDEO_URL }}
+              resizeMode={ResizeMode.CONTAIN}
+              isLooping={false}
+              isMuted={isMuted}
+              onPlaybackStatusUpdate={handlePlaybackStatusUpdate}
+              useNativeControls={false}
+            />
+            
             <View style={styles.progressBarContainer}>
               <BlurView
                 intensity={40}
@@ -317,7 +315,6 @@ export default function VideoPlayerScreen() {
         </BlurView>
       </View>
 
-      {/* Time Display */}
       <View style={styles.timeContainer}>
         <ThemedText style={[styles.timeText, { color: isDark ? '#8E8E93' : '#6E6E73' }]}>
           {getCurrentTime()}
@@ -327,9 +324,7 @@ export default function VideoPlayerScreen() {
         </ThemedText>
       </View>
 
-      {/* Premium Controls */}
       <View style={styles.controlsContainer}>
-        {/* Primary Controls Row */}
         <View style={styles.primaryControlsRow}>
           <PremiumControlButton
             onPress={() => handleSeek(-10)}
@@ -353,7 +348,6 @@ export default function VideoPlayerScreen() {
           />
         </View>
 
-        {/* Secondary Controls Row */}
         <View style={styles.secondaryControlsRow}>
           <View style={styles.controlGroup}>
             <PremiumControlButton
@@ -487,7 +481,7 @@ const styles = StyleSheet.create({
   },
   videoContainer: {
     width: SCREEN_WIDTH - 40,
-    height: (SCREEN_WIDTH - 40) * 9 / 16,
+    height: (SCREEN_WIDTH - 40) * VIDEO_ASPECT_RATIO,
     marginHorizontal: 20,
     marginBottom: 20,
     borderRadius: 24,

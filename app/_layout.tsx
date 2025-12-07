@@ -1,3 +1,10 @@
+/**
+ * Root Layout
+ * 
+ * Sets up the navigation structure and theme provider for the entire app.
+ * Wraps all screens with theme context and navigation theme.
+ */
+
 import { DarkTheme, DefaultTheme, ThemeProvider as NavigationThemeProvider } from '@react-navigation/native';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
